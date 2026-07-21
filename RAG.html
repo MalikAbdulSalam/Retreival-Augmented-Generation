@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG (Retrieval-Augmented Generation) Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+            border-bottom: 3px solid #4F46E5;
+            padding-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #1a1a1a;
+            margin: 2rem 0 1rem 0;
+            padding-top: 1rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #374151;
+            margin: 1.5rem 0 0.8rem 0;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            color: #4B5563;
+            margin: 1.2rem 0 0.5rem 0;
+        }
+
+        .highlight-box {
+            background: #EEF2FF;
+            border-left: 4px solid #4F46E5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .highlight-box strong {
+            color: #4F46E5;
+        }
+
+        .architecture-diagram {
+            background: #1a1a1a;
+            color: #e5e7eb;
+            padding: 2rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            line-height: 1.8;
+        }
+
+        .architecture-diagram .arrow {
+            color: #60A5FA;
+        }
+
+        .architecture-diagram .highlight {
+            color: #FCD34D;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block .keyword {
+            color: #60A5FA;
+        }
+        
+        .code-block .string {
+            color: #34D399;
+        }
+        
+        .code-block .comment {
+            color: #9CA3AF;
+        }
+        
+        .code-block .function {
+            color: #FCD34D;
+        }
+
+        .code-block .variable {
+            color: #F472B6;
+        }
+
+        .step-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .step-card {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #4F46E5;
+            color: white;
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            line-height: 32px;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .flow-diagram {
+            background: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+        }
+
+        .flow-diagram .box {
+            display: inline-block;
+            background: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            border: 2px solid #4F46E5;
+            margin: 0.3rem;
+            font-weight: 500;
+        }
+
+        .flow-diagram .arrow {
+            color: #6b7280;
+            font-size: 1.2rem;
+            margin: 0 0.3rem;
+        }
+
+        .install-section {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin: 1rem 0;
+        }
+
+        .folder-structure {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+        }
+
+        .folder-structure .folder {
+            color: #60A5FA;
+        }
+
+        .folder-structure .file {
+            color: #34D399;
+        }
+
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        .example-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .example-box strong {
+            color: #d97706;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .step-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-diagram .box {
+                display: block;
+                margin: 0.5rem auto;
+            }
+            
+            .flow-diagram .arrow {
+                display: block;
+                transform: rotate(90deg);
+                margin: 0.2rem 0;
+            }
+        }
+
+        .tag {
+            display: inline-block;
+            background: #4F46E5;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .tag-blue {
+            background: #3B82F6;
+        }
+
+        .tag-green {
+            background: #10B981;
+        }
+
+        .tag-purple {
+            background: #8B5CF6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RAG (Retrieval-Augmented Generation)</h1>
+        <p class="subtitle">Complete tutorial with modern LangChain (2026)</p>
+
+        <div class="highlight-box">
+            <strong>What is RAG?</strong><br>
+            RAG = Retrieval + Augmented + Generation<br><br>
+            Instead of asking an AI model to answer from its own knowledge, we first retrieve relevant information from our own documents, then give that information to the AI to generate the answer.
+        </div>
+
+        <!-- Architecture -->
+        <h2>Complete RAG Architecture</h2>
+        <div class="architecture-diagram">
+            <span class="highlight">PDF</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Read Document</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Split into Chunks</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Convert to Embeddings</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Store in Vector DB</span><br>
+            <span style="color: #9CA3AF;">(FAISS/Chroma/Pinecone)</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">─────────────────────────────────</span><br>
+            <span class="highlight">User asks Question</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Convert Question to Embedding</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Similarity Search</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Top 3-5 Chunks</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">LLM</span><br>
+            <span class="arrow">│</span><br>
+            <span class="arrow">▼</span><br>
+            <span class="highlight">Answer</span>
+        </div>
+
+        <!-- Example -->
+        <h2>Example</h2>
+        <div class="example-box">
+            <strong>Suppose you have a PDF about your company.</strong><br><br>
+            User asks: <em>"What is the office timing?"</em><br><br>
+            Instead of the LLM guessing, RAG:<br>
+            1. Searches the PDF<br>
+            2. Finds: <em>Office timing: Monday-Friday 9:00 AM - 5:00 PM</em><br>
+            3. Sends this to the LLM<br><br>
+            <strong>Prompt becomes:</strong><br>
+            Context: Office timing: Monday-Friday 9:00 AM - 5:00 PM<br>
+            Question: What is office timing?<br><br>
+            <strong>LLM answers:</strong> Office timing is Monday to Friday from 9 AM to 5 PM.
+        </div>
+
+        <!-- Prerequisites -->
+        <h2>Installation</h2>
+        <div class="install-section">
+            <p><strong>Required Packages:</strong></p>
+            <div class="code-block">
+                pip install langchain<br>
+                pip install langchain-community<br>
+                pip install langchain-huggingface<br>
+                pip install langchain-text-splitters<br>
+                pip install langchain-groq<br>
+                pip install faiss-cpu<br>
+                pip install sentence-transformers<br>
+                pip install pypdf<br>
+                pip install flask
+            </div>
+        </div>
+
+        <!-- Step by Step -->
+        <h2>Step-by-Step Implementation</h2>
+
+        <div class="step-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h4>Load PDF</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_community.document_loaders import PyPDFLoader<br><br>
+                    loader = PyPDFLoader("documents/book.pdf")<br>
+                    docs = loader.load()
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h4>Split Documents</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_text_splitters import RecursiveCharacterTextSplitter<br><br>
+                    text_splitter = RecursiveCharacterTextSplitter(<br>
+                    &nbsp;&nbsp;chunk_size=1000,<br>
+                    &nbsp;&nbsp;chunk_overlap=200<br>
+                    )<br><br>
+                    chunks = text_splitter.split_documents(docs)
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h4>Create Embeddings</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_huggingface import HuggingFaceEmbeddings<br><br>
+                    embeddings = HuggingFaceEmbeddings(<br>
+                    &nbsp;&nbsp;model_name="sentence-transformers/all-MiniLM-L6-v2"<br>
+                    )
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h4>Create FAISS Database</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_community.vectorstores import FAISS<br><br>
+                    vector_db = FAISS.from_documents(<br>
+                    &nbsp;&nbsp;documents=chunks,<br>
+                    &nbsp;&nbsp;embedding=embeddings<br>
+                    )<br><br>
+                    vector_db.save_local("faiss_db")
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <h4>Load Database</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_community.vectorstores import FAISS<br><br>
+                    vector_db = FAISS.load_local(<br>
+                    &nbsp;&nbsp;"faiss_db",<br>
+                    &nbsp;&nbsp;embeddings,<br>
+                    &nbsp;&nbsp;allow_dangerous_deserialization=True<br>
+                    )
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">6</div>
+                <h4>Connect Groq</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_groq import ChatGroq<br><br>
+                    llm = ChatGroq(<br>
+                    &nbsp;&nbsp;model="llama-3.3-70b-versatile",<br>
+                    &nbsp;&nbsp;api_key="YOUR_GROQ_API_KEY",<br>
+                    &nbsp;&nbsp;temperature=0<br>
+                    )
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">7</div>
+                <h4>Create Prompt</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_core.prompts import ChatPromptTemplate<br><br>
+                    prompt = ChatPromptTemplate.from_template("""<br>
+                    Answer the question using only the context.<br><br>
+                    Context:<br>
+                    {context}<br><br>
+                    Question:<br>
+                    {question}<br>
+                    """)
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">8</div>
+                <h4>Build Chain (LCEL)</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain_core.output_parsers import StrOutputParser<br><br>
+                    chain = (<br>
+                    &nbsp;&nbsp;prompt<br>
+                    &nbsp;&nbsp;| llm<br>
+                    &nbsp;&nbsp;| StrOutputParser()<br>
+                    )
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">9</div>
+                <h4>Use Retriever</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    retriever = vector_db.as_retriever(<br>
+                    &nbsp;&nbsp;search_kwargs={"k": 3}<br>
+                    )<br><br>
+                    docs = retriever.invoke(question)
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">10</div>
+                <h4>Build Retrieval Chain</h4>
+                <div class="code-block" style="font-size: 0.8rem;">
+                    from langchain.chains.combine_documents import create_stuff_documents_chain<br>
+                    from langchain.chains.retrieval import create_retrieval_chain<br><br>
+                    document_chain = create_stuff_documents_chain(<br>
+                    &nbsp;&nbsp;llm, prompt<br>
+                    )<br><br>
+                    retrieval_chain = create_retrieval_chain(<br>
+                    &nbsp;&nbsp;retriever, document_chain<br>
+                    )
+                </div>
+            </div>
+        </div>
+
+        <!-- Complete Example -->
+        <h2>Complete Working Example</h2>
+        <div class="code-block">
+            <span class="comment"># 1. Load PDF</span><br>
+            from langchain_community.document_loaders import PyPDFLoader<br>
+            loader = PyPDFLoader("documents/book.pdf")<br>
+            docs = loader.load()<br><br>
+
+            <span class="comment"># 2. Split Documents</span><br>
+            from langchain_text_splitters import RecursiveCharacterTextSplitter<br>
+            text_splitter = RecursiveCharacterTextSplitter(<br>
+            &nbsp;&nbsp;chunk_size=1000,<br>
+            &nbsp;&nbsp;chunk_overlap=200<br>
+            )<br>
+            chunks = text_splitter.split_documents(docs)<br><br>
+
+            <span class="comment"># 3. Create Embeddings</span><br>
+            from langchain_huggingface import HuggingFaceEmbeddings<br>
+            embeddings = HuggingFaceEmbeddings(<br>
+            &nbsp;&nbsp;model_name="sentence-transformers/all-MiniLM-L6-v2"<br>
+            )<br><br>
+
+            <span class="comment"># 4. Create FAISS Database</span><br>
+            from langchain_community.vectorstores import FAISS<br>
+            vector_db = FAISS.from_documents(<br>
+            &nbsp;&nbsp;documents=chunks,<br>
+            &nbsp;&nbsp;embedding=embeddings<br>
+            )<br><br>
+
+            <span class="comment"># 5. Connect Groq</span><br>
+            from langchain_groq import ChatGroq<br>
+            llm = ChatGroq(<br>
+            &nbsp;&nbsp;model="llama-3.3-70b-versatile",<br>
+            &nbsp;&nbsp;api_key="YOUR_GROQ_API_KEY",<br>
+            &nbsp;&nbsp;temperature=0<br>
+            )<br><br>
+
+            <span class="comment"># 6. Create Prompt</span><br>
+            from langchain_core.prompts import ChatPromptTemplate<br>
+            prompt = ChatPromptTemplate.from_template("""<br>
+            Answer the question using only the context.<br><br>
+            Context:<br>
+            {context}<br><br>
+            Question:<br>
+            {question}<br>
+            """)<br><br>
+
+            <span class="comment"># 7. Create Retriever</span><br>
+            retriever = vector_db.as_retriever(<br>
+            &nbsp;&nbsp;search_kwargs={"k": 3}<br>
+            )<br><br>
+
+            <span class="comment"># 8. Build Retrieval Chain</span><br>
+            from langchain.chains.combine_documents import create_stuff_documents_chain<br>
+            from langchain.chains.retrieval import create_retrieval_chain<br><br>
+
+            document_chain = create_stuff_documents_chain(<br>
+            &nbsp;&nbsp;llm, prompt<br>
+            )<br><br>
+
+            retrieval_chain = create_retrieval_chain(<br>
+            &nbsp;&nbsp;retriever, document_chain<br>
+            )<br><br>
+
+            <span class="comment"># 9. Ask Question</span><br>
+            response = retrieval_chain.invoke({<br>
+            &nbsp;&nbsp;"input": "What is Artificial Intelligence?"<br>
+            })<br><br>
+
+            print(response["answer"])
+        </div>
+
+        <!-- Modern RAG Pipeline -->
+        <h2>Modern RAG Pipeline</h2>
+        <div class="flow-diagram">
+            <div class="box">PDF</div>
+            <span class="arrow">→</span>
+            <div class="box">PyPDFLoader</div>
+            <span class="arrow">→</span>
+            <div class="box">RecursiveCharacterTextSplitter</div>
+            <span class="arrow">→</span>
+            <div class="box">HuggingFaceEmbeddings</div>
+            <span class="arrow">→</span>
+            <div class="box">FAISS</div>
+            <span class="arrow">→</span>
+            <div class="box">as_retriever()</div>
+            <span class="arrow">→</span>
+            <div class="box">create_retrieval_chain()</div>
+            <span class="arrow">→</span>
+            <div class="box">ChatGroq (LLM)</div>
+            <span class="arrow">→</span>
+            <div class="box">Final Answer</div>
+        </div>
+
+        <!-- Folder Structure -->
+        <h2>Recommended Folder Structure</h2>
+        <div class="folder-structure">
+            <span class="folder">RAG_Project/</span><br>
+            │<br>
+            ├── <span class="file">app.py</span><br>
+            ├── <span class="file">llm.py</span><br>
+            ├── <span class="file">requirements.txt</span><br>
+            │<br>
+            ├── <span class="folder">documents/</span><br>
+            │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">book.pdf</span><br>
+            │<br>
+            ├── <span class="folder">vector_db/</span><br>
+            │<br>
+            ├── <span class="folder">templates/</span><br>
+            │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">index.html</span><br>
+            │<br>
+            └── <span class="folder">static/</span>
+        </div>
+
+        <!-- What Students Should Learn -->
+        <h2>What Students Should Learn</h2>
+        <div class="highlight-box">
+            <ol>
+                <li>What is an LLM?</li>
+                <li>What are tokens?</li>
+                <li>Why RAG is needed (LLMs don't know your private documents)</li>
+                <li>Reading PDFs</li>
+                <li>Text chunking</li>
+                <li>Embeddings</li>
+                <li>Vector databases (FAISS/Chroma)</li>
+                <li>Similarity search (cosine similarity or related metrics)</li>
+                <li>Prompt engineering with retrieved context</li>
+                <li>Connecting to an LLM (Groq, OpenAI, Gemini, etc.)</li>
+                <li>Building a Flask frontend to ask questions</li>
+                <li>Deploying the RAG application</li>
+            </ol>
+            <p style="margin-top: 1rem;"><em>This progression helps students understand not just how to build a RAG system, but why each component is necessary.</em></p>
+        </div>
+
+        <!-- Key Concepts -->
+        <h2>Key Concepts</h2>
+        <div class="step-grid">
+            <div class="step-card">
+                <h4><span class="tag tag-blue">Embeddings</span></h4>
+                <p>Numerical vectors that capture semantic meaning. Similar texts have similar vectors.</p>
+                <div class="code-block" style="font-size: 0.7rem; margin-top: 0.5rem;">
+                    "Cat" → [0.21, 0.81, 0.13, 0.90, ...]
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h4><span class="tag tag-green">Similarity Search</span></h4>
+                <p>Finds the most relevant chunks by comparing vector distances (cosine similarity).</p>
+            </div>
+
+            <div class="step-card">
+                <h4><span class="tag tag-purple">Retriever</span></h4>
+                <p>Modern LangChain's way to handle document retrieval. Converts vector store into a search interface.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #e5e7eb; text-align: center; color: #6b7280;">
+            <p>RAG Tutorial - Modern LangChain (2026)</p>
+            <p style="font-size: 0.9rem;">Waht next? RAG</p>
+        </div>
+    </div>
+</body>
+</html>
